@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 # install.packages("BSDA")
 library(BSDA)
+library(ggplot2)
 ```
 
 ```{r}
@@ -56,12 +57,6 @@ $$
 C_{\alpha} = \brace(x, y): |\bar{X}-\bar{Y}|>c_{\alpha}
 $$
 
-Or in our case:
-
-$$
-C_{0.05} = \brace(x, y): |\bar{X}-\bar{Y}|>c_{0.05}
-$$
-
 According to the Central Limit Theorem, regardless of the distribution of the population, as long as the sample size is large enough (larger than 30), the sampling distribution of the mean will always be normally distributed.
 
 So when we assume that $H_0$ is true, the distribution of $\bar{X} \sim N(\mu_x, \sigma^2/n)$ and $\bar{Y} \sim N(\mu_x, \sigma^2/m)$.
@@ -89,11 +84,13 @@ $$
 ```{r}
 #calculating z-statistics
 z_stat <- sqrt(5000/150)*(mean(X)-mean(Y))
-z_stat
+cat("z-score for two-sided z-test ", z_stat)
+
+cat("\n")
+
 #calculating p-value
 p_value <- 2*pnorm(-abs(z_stat))
-p_value
-
+cat("p-value for two-sided z-test ", p_value)
 ```
 
 ### Calculating using built-in function:
@@ -102,8 +99,33 @@ p_value
 #usng built-in function to test hypotheses using two-sided z-test
 z_test <- z.test(x = X, y = Y, alternative = "two.sided", mu = 0, sigma.x = 1, sigma.y = 1, conf.level = 0.95)
 z_test
+```
 
-#plot critical region
+As we can see, the values obtained by calculating manually and using built-in functions match.
+
+### Plot:
+
+Now we can show all the obtained data on the plot: 2.5% and 97.5% percentiles, p-value and z-score. Rejection regions are filled with red color. Since z-score does not belong to them, we do not have to reject $H_0$.
+
+```{r}
+dnorm_limit <- function(x) {
+    y <- dnorm(x)
+    y[x >= qnorm(0.05/2)  &  x <= -qnorm(0.05/2)] <- NA
+    return(y)
+}
+
+ggplot(data.frame(x = c(-3, 3)), aes(x = x)) +
+stat_function(fun = dnorm) +
+stat_function(fun = dnorm_limit, geom = "area", fill = "red", alpha = 0.5) +
+geom_vline(aes(xintercept = qnorm(0.025)), linetype = "dashed", color = "red") +
+annotate("text", x=qnorm(0.025)-0.09, y=0.15, label="2.5% percentile", angle=90) +
+geom_vline(aes(xintercept = -qnorm(0.025)), linetype = "dashed", color = "red") +
+annotate("text", x=-qnorm(0.025)-0.09, y=0.15, label="97.5% percentile", angle=90) +
+geom_vline(aes(xintercept = p_value), linetype = "dashed", color = "orange") +
+annotate("text", x=p_value-0.09, y=0.15, label="p-value", angle=90) +
+geom_vline(aes(xintercept = z_stat), linetype = "dashed", color = "blue") +
+annotate("text", x=z_stat-0.09, y=0.15, label="z-score", angle=90) +
+scale_x_continuous(breaks = c(-qnorm(0.025), z_stat, p_value, qnorm(0.025)))
 
 ```
 
