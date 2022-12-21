@@ -85,3 +85,5 @@ Let's plot them:
 plot(ecdf(X), col = "red")
 lines(ecdf(Y), col = "blue")
 ```
+
+So, in this task we've learned how to use one- and two-sample Kolmogoroff-Smirnoff tests in R. 
