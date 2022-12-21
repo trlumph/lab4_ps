@@ -1,6 +1,6 @@
 ---
 title: "task3"
-author: "Nazar Demchuk"
+author: "Nazar"
 date: "`r Sys.Date()`"
 output: html_document
 ---
@@ -9,9 +9,14 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+### Task 3
+
 ```{r}
 # make this example reproducible
+set.seed(0)
 n <- 12
+N1 <- 100
+N2 <- 50
 
 # generating data
 a <- function(k) {
@@ -19,16 +24,64 @@ a <- function(k) {
   return(res - floor(res))
 }
 
-X <- seq(1, 100)
+X <- seq(1, N1)
 for (idx in 1:100) {
-  X[idx] = a(idx)
+  X[idx] = qnorm(a(idx))
 }
 
-Y <- seq(1, 50)
+Y <- seq(1, N2)
 for (idx in 1:50) {
-  Y[idx] = a(idx)
+  Y[idx] = qnorm(a(idx + 100))
 }
 
-X
-Y
+```
+
+#### 3a)
+
+```{r}
+mu1 = mean(X)
+sigma1 = sd(X)
+?seq
+x <- seq(from = -4, to = 4, length = 100)
+ks.test(X, pnorm, mu1, sigma1)
+```
+
+From the output we can see that the test statistic is **0.060557** and the corresponding p-value is **0.9688**. Since the p-value is \>\> .05, we are failed to reject the null hypothesis. We have sufficient evidence to say that the sample data come from a normal distribution.
+
+Comparison of normal cdf and ecdf of our distribution:
+
+```{r}
+plot(ecdf(X), col="blue")
+dist1 <- pnorm(x, mu1, sigma1)
+lines(x, dist1, col = "red", lty = 1, lwd = 2)
+```
+
+#### 3b)
+
+```{r}
+mu2 <- 1
+dist2 <- pexp(x, mu2)
+ks.test(X, pexp, mu2)
+```
+
+Now the test statistic's value is **0.5**, which means that the maximum deviation between two distributions is **0.5** and the p-value is less than **.05**, therefore we reject the null hypothesis and claim that the data we've achieved is not sampled from exponential distribution with mu = 1.
+
+```{r}
+plot(ecdf(X), col="blue")
+lines(x, dist2, col = "red", lty = 1, lwd = 2)
+```
+
+#### 3c)
+
+```{r}
+ks.test(X, Y)
+```
+
+Since p-value is not small enough, we claim null-hypothesis to be true. Thus, X and Y came from the same distribution.
+
+Let's plot them:
+
+```{r}
+plot(ecdf(X), col = "red")
+lines(ecdf(Y), col = "blue")
 ```
